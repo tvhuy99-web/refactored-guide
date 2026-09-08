@@ -1,0 +1,80 @@
+name: Build Mineclonia Blind VI APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    name: Build debug APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout build payload
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android command-line tools
+        uses: android-actions/setup-android@v3
+
+      - name: Install native and Android build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes gettext
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-34" \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "cmake;3.22.1" \
+            "ndk;29.0.14206865"
+
+      - name: Reassemble and verify source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .build/source
+          cat payload/mineclonia-blind-vi-source.part-* > .build/mineclonia-blind-vi-source.tar.gz
+          printf '%s  %s\\n' \
+            'c20300008d11b556abbdc3b28cd75dbc88a977d11087d99ed9a6ff4df16f7243' \
+            '.build/mineclonia-blind-vi-source.tar.gz' | sha256sum --check
+          tar -xzf .build/mineclonia-blind-vi-source.tar.gz -C .build/source
+
+      - name: Enable Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APKs
+        working-directory: .build/source/android
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace :app:assembleDebug
+
+      - name: Show APK checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          find .build/source/android/app/build/outputs/apk -type f -name '*.apk' -print -exec sha256sum {} \\;
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mineclonia-blind-vi-debug-apks
+          path: .build/source/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 14
