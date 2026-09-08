@@ -49,9 +49,7 @@ jobs:
           set -euo pipefail
           mkdir -p .build/source
           cat payload/mineclonia-blind-vi-source.part-* > .build/mineclonia-blind-vi-source.tar.gz
-          printf '%s  %s\\n' \
-            'c20300008d11b556abbdc3b28cd75dbc88a977d11087d99ed9a6ff4df16f7243' \
-            '.build/mineclonia-blind-vi-source.tar.gz' | sha256sum --check
+          echo 'c20300008d11b556abbdc3b28cd75dbc88a977d11087d99ed9a6ff4df16f7243  .build/mineclonia-blind-vi-source.tar.gz' | sha256sum --check
           tar -xzf .build/mineclonia-blind-vi-source.tar.gz -C .build/source
 
       - name: Enable Gradle cache
@@ -69,7 +67,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          find .build/source/android/app/build/outputs/apk -type f -name '*.apk' -print -exec sha256sum {} \\;
+          find .build/source/android/app/build/outputs/apk -type f -name '*.apk' -print -exec sha256sum {} \;
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
