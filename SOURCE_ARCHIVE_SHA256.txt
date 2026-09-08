@@ -1,6 +1,1 @@
-Source archive SHA-256
-c20300008d11b556abbdc3b28cd75dbc88a977d11087d99ed9a6ff4df16f7243
-
-Archive: mineclonia-blind-vi-source.tar.gz
-Transport: 40 parts under payload/
-Exclusions: generated *.o/*.s, APK/AAB/ZIP outputs, build directories, android/keystore-minetest.jks
+45a5a23dd99515a9ccb1b8c21691ab51d3a8aec74ab42be8b3e15486b0da9c2a  mineclonia-blind-vi-source-v2.tar.gz
